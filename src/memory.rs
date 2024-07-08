@@ -1,4 +1,12 @@
+use std::mem;
+
 const MEM_SIZE: usize = 1024 * 1024;
+
+struct Header {
+    pub size: isize,
+    pub isfree: bool,
+    pub next: Option<usize>,
+}
 
 pub struct Memory {
     pub memory_space: Vec<u8>,
@@ -27,6 +35,19 @@ impl Memory {
             }
             Some(_) => Err("Program Break has exceeded memory space!"),
             None => Err("Program Break arithmetic overflow!"),
+        }
+    }
+
+    pub fn allocate(&mut self, size: usize) -> Option<usize> {
+        if size == 0 {
+            return None;
+        }
+
+        if let Some(block_offset) = self.get_free_block(size) {
+            let mut header = self.read_header(block_offsset);
+            header.is_free = false;
+            self.write_header(block_offset, header);
+            return Some(block_offset + mem::size_of::<Header>());
         }
     }
 }
